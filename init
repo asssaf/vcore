@@ -1,0 +1,10 @@
+#!/bin/sh
+
+mount -t proc none /proc
+mount -t devtmpfs none /dev
+mount -t sysfs none /sys
+
+#ip link set eth0 up
+#udhcpc
+
+exec /sbin/init

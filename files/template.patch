@@ -1,0 +1,40 @@
+--- orig/template	2026-07-02 09:43:37.265487264 -0700
++++ new/template	2026-07-02 16:43:36.174518235 -0700
+@@ -31,7 +31,7 @@
+ alternatives="${_alternatives}"
+ register_shell="/usr/bin/ash"
+ 
+-_variants=(busybox busybox-static busybox-core busybox-huge busybox-mkinitcpio)
++_variants=(busybox busybox-static busybox-core busybox-huge busybox-mkinitcpio busybox-custom)
+ 
+ _patch_config() {
+ 	local t="$1"
+@@ -72,6 +72,7 @@
+ 	_patch_config busybox udhcpc ntpd
+ 	_patch_config busybox-static udhcpc ntpd static install
+ 	_patch_config busybox-huge udhcpc ntpd httpd mdev sysklogd huge
++	_patch_config busybox-custom udhcpc ntpd httpd mdev sysklogd huge install init runit watchdog suid
+ 
+ 	for t in "${_variants[@]}"; do
+ 		make -C "${t}" KBUILD_SRC="${wrksrc}/src" -f "${wrksrc}/src/Makefile" oldconfig
+@@ -134,6 +135,20 @@
+ 		vsv busybox-ntpd
+ 		vsv busybox-syslogd
+ 		vsv busybox-klogd
++	}
++}
++
++busybox-custom_package() {
++	short_desc+=" (custom)"
++	conflicts="busybox>=0 busybox-core>=0"
++	alternatives="${_alternatives}"
++	register_shell="/usr/bin/ash"
++	pkg_install() {
++		vbin busybox-custom/busybox_unstripped busybox
++		vman busybox-custom/docs/busybox.1
++		vsv busybox-ntpd
++		vsv busybox-syslogd
++		vsv busybox-klogd
+ 	}
+ }
+ 
