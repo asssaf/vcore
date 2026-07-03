@@ -15,6 +15,7 @@ jobs:
     strategy:
       matrix:
         include:
+          - arch: armv6l
           - arch: aarch64
           - arch: x86_64
 
