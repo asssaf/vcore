@@ -3,6 +3,7 @@ ARG ARCH
 ARG XBPS_ARCH=${ARCH}-musl
 ARG REPO="https://repo-default.voidlinux.org/current/${ARCH}"
 ARG REPO="${REPO/x86_64/musl}"
+ARG REPO="${REPO/armv6l/musl}"
 
 
 FROM ghcr.io/void-linux/void-musl-busybox:20260601r1 AS build
