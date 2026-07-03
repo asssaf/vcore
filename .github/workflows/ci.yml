@@ -17,8 +17,10 @@ jobs:
         include:
           - arch: aarch64
             xbps_arch: aarch64-musl
+            repo: https://repo-default.voidlinux.org/current/aarch64
           - arch: x86_64
             xbps_arch: x86_64-musl
+            repo: https://repo-default.voidlinux.org/current/musl
 
     steps:
       - name: Checkout
@@ -45,6 +47,7 @@ jobs:
           build-args: |
             ARCH=${{ matrix.arch }}
             XBPS_ARCH=${{ matrix.xbps_arch }}
+            REPO=${{ matrix.repo }}
           outputs: type=local,dest=dist
 
       - name: Upload artifact
