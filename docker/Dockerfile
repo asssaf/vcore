@@ -1,7 +1,8 @@
-# syntax=docker/dockerfile:1.3-labs
-ARG ARCH=aarch64
+# syntax=docker/dockerfile:1
+ARG ARCH
 ARG XBPS_ARCH=${ARCH}-musl
-ARG REPO=https://repo-default.voidlinux.org/current/${ARCH}
+ARG REPO="https://repo-default.voidlinux.org/current/${ARCH}"
+ARG REPO="${REPO/x86_64/musl}"
 
 
 FROM ghcr.io/void-linux/void-musl-busybox:20260601r1 AS build
@@ -22,7 +23,9 @@ WORKDIR /root/void-packages
 RUN echo -e "XBPS_CHROOT_CMD=ethereal\nXBPS_ALLOW_CHROOT_BREAKOUT=yes" > etc/conf
 RUN ln -s / masterdir
 ARG XBPS_ARCH
-RUN ./xbps-src -a ${XBPS_ARCH} binary-bootstrap
+ARG XBPS_SRC_ARCH="-a ${XBPS_ARCH}"
+ARG XBPS_SRC_ARCH="${XBPS_SRC_ARCH/-a x86_64-musl/}"
+RUN ./xbps-src ${XBPS_SRC_ARCH} binary-bootstrap
 
 
 FROM build-packages AS build-busybox
@@ -31,14 +34,14 @@ COPY files srcpkgs/busybox/files
 RUN cd srcpkgs/busybox && patch template files/template.patch
 RUN ln -s busybox srcpkgs/busybox-custom
 ARG PKG=busybox-custom
-ARG XBPS_ARCH
-RUN ./xbps-src -a $XBPS_ARCH fetch $PKG
-RUN ./xbps-src -a $XBPS_ARCH extract $PKG
-RUN ./xbps-src -a $XBPS_ARCH patch $PKG
-RUN ./xbps-src -a $XBPS_ARCH configure $PKG
-RUN ./xbps-src -a $XBPS_ARCH build $PKG
-RUN ./xbps-src -a $XBPS_ARCH install $PKG
-RUN ./xbps-src -a $XBPS_ARCH pkg $PKG
+ARG XBPS_SRC_ARCH
+RUN ./xbps-src $XBPS_SRC_ARCH fetch $PKG
+RUN ./xbps-src $XBPS_SRC_ARCH extract $PKG
+RUN ./xbps-src $XBPS_SRC_ARCH patch $PKG
+RUN ./xbps-src $XBPS_SRC_ARCH configure $PKG
+RUN ./xbps-src $XBPS_SRC_ARCH build $PKG
+RUN ./xbps-src $XBPS_SRC_ARCH install $PKG
+RUN ./xbps-src $XBPS_SRC_ARCH pkg $PKG
 
 
 FROM build-packages AS install-packages
