@@ -22,7 +22,11 @@ WORKDIR /root/void-packages
 RUN echo -e "XBPS_CHROOT_CMD=ethereal\nXBPS_ALLOW_CHROOT_BREAKOUT=yes" > etc/conf
 RUN ln -s / masterdir
 ARG XBPS_ARCH
-RUN ./xbps-src -a ${XBPS_ARCH} binary-bootstrap
+RUN if [ "$XBPS_ARCH" != "$(xbps-uarch)" ]; then \
+        ./xbps-src -a ${XBPS_ARCH} binary-bootstrap; \
+    else \
+        ./xbps-src binary-bootstrap; \
+    fi
 
 
 FROM build-packages AS build-busybox
@@ -32,13 +36,11 @@ RUN cd srcpkgs/busybox && patch template files/template.patch
 RUN ln -s busybox srcpkgs/busybox-custom
 ARG PKG=busybox-custom
 ARG XBPS_ARCH
-RUN ./xbps-src -a $XBPS_ARCH fetch $PKG
-RUN ./xbps-src -a $XBPS_ARCH extract $PKG
-RUN ./xbps-src -a $XBPS_ARCH patch $PKG
-RUN ./xbps-src -a $XBPS_ARCH configure $PKG
-RUN ./xbps-src -a $XBPS_ARCH build $PKG
-RUN ./xbps-src -a $XBPS_ARCH install $PKG
-RUN ./xbps-src -a $XBPS_ARCH pkg $PKG
+RUN if [ "$XBPS_ARCH" != "$(xbps-uarch)" ]; then \
+        ./xbps-src -a $XBPS_ARCH pkg $PKG; \
+    else \
+        ./xbps-src pkg $PKG; \
+    fi
 
 
 FROM build-packages AS install-packages
@@ -46,7 +48,7 @@ FROM build-packages AS install-packages
 ARG XBPS_ARCH
 ARG REPO
 ENV XBPS_ARCH=${XBPS_ARCH}
-RUN xbps-install -S -y -r /mnt -R "$REPO" musl base-files
+RUN xbps-install -S -y -r /mnt --arch $XBPS_ARCH -R "$REPO" musl base-files
 
 
 FROM install-packages AS install-busybox
@@ -55,7 +57,7 @@ COPY --from=build-busybox /root/void-packages/hostdir /hostdir
 ARG XBPS_ARCH
 ENV XBPS_ARCH=${XBPS_ARCH}
 RUN xbps-rindex -a /hostdir/binpkgs/*.xbps
-RUN xbps-install -y -r /mnt -R /hostdir/binpkgs busybox-custom
+RUN xbps-install -y -r /mnt --arch $XBPS_ARCH -R /hostdir/binpkgs busybox-custom
 RUN chroot /mnt /usr/bin/busybox --install -s
 
 
@@ -77,4 +79,3 @@ COPY --from=install /mnt /
 FROM scratch AS export-initramfs
 
 COPY --from=build-initramfs /initramfs.cpio.gz /
-
