@@ -12,6 +12,9 @@ name: CI
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     strategy:
       matrix:
         include:
@@ -33,7 +36,44 @@ jobs:
           docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c
         # v4.2.0, verified via git ls-remote
 
-      - name: Build and export
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302
+        # v6.2.0, verified via git ls-remote
+        with:
+          images: ghcr.io/${{ github.repository }}
+          flavor: |
+            latest=false
+          tags: |
+            type=raw,value=${{ matrix.arch }}
+            type=raw,value=${{ matrix.arch }}-${{ github.sha }}
+
+      - name: Login to GHCR
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0
+        # v4.4.0, verified via git ls-remote
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push rootfs to GHCR
+        uses: >-
+          docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a
+        # v7.3.0, verified via git ls-remote
+        with:
+          context: .
+          file: docker/Dockerfile
+          target: export
+          build-args: |
+            ARCH=${{ matrix.arch }}
+          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=build-${{ matrix.arch }}
+          cache-to: type=gha,mode=max,scope=build-${{ matrix.arch }}
+
+      - name: Build and export initramfs
         uses: >-
           docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a
         # v7.3.0, verified via git ls-remote
@@ -54,3 +94,4 @@ jobs:
         with:
           name: initramfs-${{ matrix.arch }}
           path: dist/initramfs.cpio.gz
+
