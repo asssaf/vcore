@@ -1,5 +1,5 @@
 --- orig/template	2026-07-02 09:43:37.265487264 -0700
-+++ new/template	2026-07-02 16:43:36.174518235 -0700
++++ new/template	2026-07-03 19:12:12.051498814 -0700
 @@ -31,7 +31,7 @@
  alternatives="${_alternatives}"
  register_shell="/usr/bin/ash"
@@ -17,7 +17,7 @@
  
  	for t in "${_variants[@]}"; do
  		make -C "${t}" KBUILD_SRC="${wrksrc}/src" -f "${wrksrc}/src/Makefile" oldconfig
-@@ -134,6 +135,20 @@
+@@ -134,6 +135,21 @@
  		vsv busybox-ntpd
  		vsv busybox-syslogd
  		vsv busybox-klogd
@@ -32,6 +32,7 @@
 +	pkg_install() {
 +		vbin busybox-custom/busybox_unstripped busybox
 +		vman busybox-custom/docs/busybox.1
++		vinstall src/examples/udhcp/simple.script 755 usr/share/udhcpc default.script
 +		vsv busybox-ntpd
 +		vsv busybox-syslogd
 +		vsv busybox-klogd
