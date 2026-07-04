@@ -5,6 +5,11 @@ ARG REPO="https://repo-default.voidlinux.org/current/${ARCH}"
 ARG REPO="${REPO/x86_64/musl}"
 ARG REPO="${REPO/armv6l/musl}"
 
+# By default busybox is built from source during the main build
+# To skip building busybox from source, this can be set to a previously built binpgk
+# e.g. BUSYBOX_BINPKGS=ghcr.io/asssaf/vcore-busybox-binpkgs:${ARCH}
+ARG BUSYBOX_BINPKGS=export-busybox-binpkgs
+
 
 FROM ghcr.io/void-linux/void-musl-busybox:20260601r1 AS build
 
@@ -45,6 +50,11 @@ RUN ./xbps-src $XBPS_SRC_ARCH install $PKG
 RUN ./xbps-src $XBPS_SRC_ARCH pkg $PKG
 
 
+FROM scratch AS export-busybox-binpkgs
+
+COPY --from=build-busybox /root/void-packages/hostdir/binpkgs /binpkgs
+
+
 FROM build-packages AS install-packages
 
 ARG XBPS_ARCH
@@ -53,13 +63,17 @@ ENV XBPS_ARCH=${XBPS_ARCH}
 RUN xbps-install -S -y -r /mnt -R "$REPO" musl base-files
 
 
+FROM ${BUSYBOX_BINPKGS} AS busybox-binpkgs
+
+
 FROM install-packages AS install-busybox
 
-COPY --from=build-busybox /root/void-packages/hostdir /hostdir
+COPY --from=busybox-binpkgs /binpkgs /binpkgs
 ARG XBPS_ARCH
 ENV XBPS_ARCH=${XBPS_ARCH}
-RUN xbps-rindex -a /hostdir/binpkgs/*.xbps
-RUN xbps-install -y -r /mnt -R /hostdir/binpkgs busybox-custom
+
+RUN xbps-rindex -a /binpkgs/*.xbps
+RUN xbps-install -y -r /mnt -R /binpkgs busybox-custom
 RUN chroot /mnt /usr/bin/busybox --install -s
 
 
