@@ -1,0 +1,10 @@
+#!/bin/sh
+
+mkdir -p /var/service
+runsvdir /var/service >& /tmp/runsvdir.log &
+
+mkdir -p "/run/runit"
+for SERVICE in busybox-klogd busybox-syslogd dhcpc busybox-ntpd
+do
+	ln -s "/etc/sv/${SERVICE}" /var/service
+done

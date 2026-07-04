@@ -65,7 +65,7 @@ RUN chroot /mnt /usr/bin/busybox --install -s
 
 FROM install-busybox AS install
 
-COPY init /mnt/
+COPY rootfs /mnt/
 
 
 FROM install AS build-initramfs

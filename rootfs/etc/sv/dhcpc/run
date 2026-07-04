@@ -1,0 +1,12 @@
+#!/bin/sh
+
+set -eu
+
+DEVICE="eth0"
+
+ip link set dev "$DEVICE" up
+
+echo "Starting dhcp client for ${DEVICE}"
+
+exec /sbin/udhcpc -f -i "$DEVICE" -x hostname:$(/bin/hostname)
+
