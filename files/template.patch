@@ -1,5 +1,5 @@
 --- orig/template	2026-07-02 09:43:37.265487264 -0700
-+++ new/template	2026-07-03 19:12:12.051498814 -0700
++++ new/template	2026-07-04 00:34:44.511524793 -0700
 @@ -31,7 +31,7 @@
  alternatives="${_alternatives}"
  register_shell="/usr/bin/ash"
@@ -13,7 +13,7 @@
  	_patch_config busybox udhcpc ntpd
  	_patch_config busybox-static udhcpc ntpd static install
  	_patch_config busybox-huge udhcpc ntpd httpd mdev sysklogd huge
-+	_patch_config busybox-custom udhcpc ntpd httpd mdev sysklogd huge install init runit watchdog suid
++	_patch_config busybox-custom udhcpc ntpd httpd mdev sysklogd huge install init runit watchdog suid login
  
  	for t in "${_variants[@]}"; do
  		make -C "${t}" KBUILD_SRC="${wrksrc}/src" -f "${wrksrc}/src/Makefile" oldconfig
