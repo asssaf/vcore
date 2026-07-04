@@ -36,12 +36,26 @@ jobs:
           docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c
         # v4.2.0, verified via git ls-remote
 
-      - name: Docker metadata
+      - name: Docker metadata for rootfs
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         id: meta
         uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302
         # v6.2.0, verified via git ls-remote
         with:
           images: ghcr.io/${{ github.repository }}
+          flavor: |
+            latest=false
+          tags: |
+            type=raw,value=${{ matrix.arch }}
+            type=raw,value=${{ matrix.arch }}-${{ github.sha }}
+
+      - name: Docker metadata for busybox-binpkgs
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        id: meta-busybox
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302
+        # v6.2.0, verified via git ls-remote
+        with:
+          images: ghcr.io/${{ github.repository }}-busybox-binpkgs
           flavor: |
             latest=false
           tags: |
@@ -57,7 +71,25 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Build and push busybox-binpkgs to GHCR
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        uses: >-
+          docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a
+        # v7.3.0, verified via git ls-remote
+        with:
+          context: .
+          file: docker/Dockerfile
+          target: export-busybox-binpkgs
+          build-args: |
+            ARCH=${{ matrix.arch }}
+          push: true
+          tags: ${{ steps.meta-busybox.outputs.tags }}
+          labels: ${{ steps.meta-busybox.outputs.labels }}
+          cache-from: type=gha,scope=build-${{ matrix.arch }}
+          cache-to: type=gha,mode=max,scope=build-${{ matrix.arch }}
+
       - name: Build and push rootfs to GHCR
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         uses: >-
           docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a
         # v7.3.0, verified via git ls-remote
@@ -67,7 +99,7 @@ jobs:
           target: export
           build-args: |
             ARCH=${{ matrix.arch }}
-          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+          push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha,scope=build-${{ matrix.arch }}
@@ -94,4 +126,3 @@ jobs:
         with:
           name: initramfs-${{ matrix.arch }}
           path: dist/initramfs.cpio.gz
-
