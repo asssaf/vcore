@@ -80,6 +80,7 @@ ENV XBPS_ARCH=${XBPS_ARCH}
 RUN xbps-rindex -a /binpkgs/*.xbps
 RUN xbps-install -y -r /mnt -R /binpkgs busybox-custom
 RUN chroot /mnt /usr/bin/busybox --install -s
+RUN chmod u+s /mnt/usr/bin/busybox
 
 
 FROM install-busybox AS install
