@@ -3,6 +3,17 @@
 mkdir -p "/var/service"
 mkdir -p "/run/runit"
 
+mkdir -p /dev/pts
+mount -t devpts none /dev/pts
+
+SHELL="/bin/sh"
+echo "$SHELL" >> "/etc/shells"
+
+USER="user"
+PASSWORD="password"
+/usr/bin/adduser -s "$SHELL" -D "$USER"
+echo -e "$PASSWORD\n$PASSWORD" | /usr/sbin/passwd "$USER"
+
 # this can be moved to "once"
 for SERVICE in busybox-klogd busybox-syslogd dhcpc busybox-ntpd
 do
