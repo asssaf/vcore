@@ -57,6 +57,11 @@ COPY --from=build-busybox /root/void-packages/hostdir/binpkgs /binpkgs
 
 FROM build-packages AS install-packages
 
+RUN mkdir -p /mnt/etc/xbps.d
+RUN echo 'noextract=/usr/share/man*' >> /mnt/etc/xbps.d/noextract.conf
+RUN echo 'noextract=/usr/share/doc*' >> /mnt/etc/xbps.d/noextract.conf
+RUN echo 'noextract=/usr/share/info*' >> /mnt/etc/xbps.d/noextract.conf
+
 ARG XBPS_ARCH
 ARG REPO
 ENV XBPS_ARCH=${XBPS_ARCH}
