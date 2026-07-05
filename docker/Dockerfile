@@ -82,17 +82,22 @@ FROM install-busybox AS install
 COPY rootfs /mnt/
 
 
-FROM install AS build-initramfs
+FROM install AS cleanup
+
+RUN rm -rf /mnt/var/db/xbps
+RUN rm -rf /mnt/var/cache/xbps
+
+
+FROM cleanup AS build-initramfs
 
 RUN cd /mnt && find . -print0 | cpio --null -ov -H newc | gzip > /initramfs.cpio.gz 
 
 
 FROM scratch AS export
 
-COPY --from=install /mnt /
+COPY --from=cleanup /mnt /
 
 
 FROM scratch AS export-initramfs
 
 COPY --from=build-initramfs /initramfs.cpio.gz /
-
