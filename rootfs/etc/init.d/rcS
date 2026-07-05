@@ -1,9 +1,9 @@
 #!/bin/sh
 
-mkdir -p /var/service
-runsvdir /var/service >& /tmp/runsvdir.log &
-
+mkdir -p "/var/service"
 mkdir -p "/run/runit"
+
+# this can be moved to "once"
 for SERVICE in busybox-klogd busybox-syslogd dhcpc busybox-ntpd
 do
 	ln -s "/etc/sv/${SERVICE}" /var/service
