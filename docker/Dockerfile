@@ -10,6 +10,12 @@ ARG REPO="${REPO/armv6l/musl}"
 # e.g. BUSYBOX_BINPKGS=ghcr.io/asssaf/vcore-busybox-binpkgs:${ARCH}
 ARG BUSYBOX_BINPKGS=export-busybox-binpkgs
 
+# Base stage to use for cleanup and later stages
+# By default the install stage is used which includes some packages, plus the custom built busybox
+# This can be customized to create additional initramfs archives with optional packages for testing
+# by setting INSTALL_STAGE=install-packages and INSTALL_PACKAGES="base-files <some-pkg> ..."
+ARG INSTALL_STAGE=install
+
 
 FROM ghcr.io/void-linux/void-musl-busybox:20260601r1 AS build
 
@@ -65,7 +71,11 @@ RUN echo 'noextract=/usr/share/info*' >> /mnt/etc/xbps.d/noextract.conf
 ARG XBPS_ARCH
 ARG REPO
 ENV XBPS_ARCH=${XBPS_ARCH}
-RUN xbps-install -S -y -r /mnt -R "$REPO" musl base-files
+ARG INSTALL_PACKAGES="musl base-files"
+RUN xbps-install -S -y -r /mnt -R "$REPO" $INSTALL_PACKAGES
+
+ARG ROOTFS=rootfs
+COPY $ROOTFS /mnt/
 
 
 FROM ${BUSYBOX_BINPKGS} AS busybox-binpkgs
@@ -85,10 +95,10 @@ RUN chmod u+s /mnt/usr/bin/busybox
 
 FROM install-busybox AS install
 
-COPY rootfs /mnt/
 
+FROM ${INSTALL_STAGE} AS install-stage
 
-FROM install AS cleanup
+FROM install-stage AS cleanup
 
 RUN rm -rf /mnt/var/db/xbps
 RUN rm -rf /mnt/var/cache/xbps
