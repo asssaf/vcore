@@ -14,6 +14,8 @@ PASSWORD="password"
 /usr/bin/adduser -s "$SHELL" -D "$USER"
 echo -e "$PASSWORD\n$PASSWORD" | /usr/sbin/passwd "$USER"
 
+echo "$USER ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/user
+
 # this can be moved to "once"
 for SERVICE in busybox-klogd busybox-syslogd dhcpc busybox-ntpd
 do
