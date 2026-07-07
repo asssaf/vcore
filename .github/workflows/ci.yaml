@@ -70,7 +70,7 @@ jobs:
           build-args: |
             ARCH=${{ matrix.arch }}
             INSTALL_STAGE=install-packages
-            INSTALL_PACKAGES=base-files dropbear pam sudo
+            INSTALL_PACKAGES=xbps-triggers dropbear pam sudo
             ROOTFS=extrarootfs
           outputs: type=local,dest=dist-extra
           cache-from: type=gha,scope=build-${{ matrix.arch }}
