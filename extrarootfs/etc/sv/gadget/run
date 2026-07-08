@@ -1,9 +1,0 @@
-#!/bin/sh
-
-set -eu
-
-exec 2>&1
-
-$(dirname $0)/service start
-
-sleep infinity

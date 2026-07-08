@@ -1,7 +1,0 @@
-#!/bin/sh
-
-set -eu
-
-exec 2>&1
-
-exec "$(dirname $0)/service" stop

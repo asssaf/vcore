@@ -1,7 +1,0 @@
-#!/bin/sh
-
-LOG_DIR="$( cd "$(dirname $0)/.." && echo ${PWD} )"
-SERVICE_DIR="${LOG_DIR%/log}"
-SERVICE_NAME="${SERVICE_DIR##*/}"
-
-exec vlogger -t "${SERVICE_NAME}" -p daemon

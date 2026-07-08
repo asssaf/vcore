@@ -1,4 +1,5 @@
 #!/bin/sh
+# shuck:disable-file=X027
 
 mkdir -p "/var/service"
 mkdir -p "/run/runit"
@@ -14,9 +15,10 @@ PASSWORD="password"
 /usr/bin/adduser -s "$SHELL" -D "$USER"
 echo -e "$PASSWORD\n$PASSWORD" | /usr/sbin/passwd "$USER"
 
-echo "$USER ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/user
-
 for f in /etc/init.d/rcS.d/*
 do
 	[ -x "$f" ] && $f
 done
+
+mkdir -p /etc/sudoers.d
+echo "$USER ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/user

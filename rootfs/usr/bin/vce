@@ -1,0 +1,153 @@
+#!/bin/sh
+# shuck:disable-file=X003,X025,X052
+
+set -eu
+
+VCE_PATH="/etc/sysconfig/vce"
+DEV="mmcblk0p1"
+VCE_INSTALLED="/usr/local/vce.installed"
+
+function get_vce_device() {
+	read -r cmdline < /proc/cmdline
+	set -- $cmdline
+	for i in "$@"
+	do
+		case $i in
+			vce=*)
+				DEV=${i#*=}
+			;;
+		esac
+	done
+}
+
+
+function link_vce() {
+	[ -e "${VCE_PATH}" ] && return 0
+	get_vce_device
+
+	case "$DEV" in
+		/*)
+			;;
+
+		*)
+			DEV="/dev/${DEV}"
+			;;
+	esac
+
+	echo "Waiting for ${DEV}..."
+	wait_for_device "${DEV}"
+
+	mkdir -p "$(dirname "${VCE_PATH}")"
+
+	if [ -b "${DEV}" ]
+	then
+		mkdir -p "/mnt/${DEV}"
+		mountpoint -q "/mnt/${DEV}" || mount "/dev/${DEV}" "/mnt/${DEV}"
+		ln -s "/mnt/${DEV}/vce" "${VCE_PATH}"
+	else
+		ln -s "${DEV}" "${VCE_PATH}"
+	fi
+}
+
+
+function wait_for_device() {
+	local t="10"
+	local f="$1"
+
+	while [ "${t}" -gt 0 ]
+	do
+		[ -e "${f}" ] && return 0
+		t=$((t-1))
+		sleep 1
+	done
+	return 1
+}
+
+
+function load_extension() {
+	local EXT="$1"
+	local EXT_PATH="${VCE_PATH}/optional/${EXT}.vcz"
+	local MOUNT="/tmp/vcloop/${EXT}"
+	local VCE_INSTALLED_EXT="${VCE_INSTALLED}/${EXT}"
+
+	mountpoint -q "${MOUNT}" && return 0
+
+	link_vce
+
+	cd "$(dirname "${EXT_PATH}")"
+	sha256sum -c ${EXT_PATH%.vcz}.sha256 || return 1
+
+	# load dependencies
+	DEP_PATH="${EXT_PATH%.vcz}.dep"
+	if [ -r "${DEP_PATH}" ]
+	then
+		while IFS= read -r dep || [ -n "$dep" ]
+		do
+			load_extension "${dep}"
+		done < "${DEP_PATH}"
+	fi
+
+	echo "Loading ${EXT}..."
+	mkdir -p "${MOUNT}"
+	mount -o loop "${EXT_PATH}" "${MOUNT}"
+
+	mkdir -p "${VCE_INSTALLED_EXT}"
+	if [ -x "${MOUNT}/${VCE_INSTALLED_EXT}/INSTALL" ]
+	then
+		 "${MOUNT}/${VCE_INSTALLED_EXT}/INSTALL" pre
+	fi
+
+	cp -as "${MOUNT}"/* /
+
+	# fix links
+	# shuck:disable=X022
+	find "${MOUNT}" -type l -print0 | while IFS= read -r -d '' link
+	do
+		target="${link#"${MOUNT}"}"
+		ln -sf "$(readlink ${link})" "$target"
+	done
+
+	if [ -x "${VCE_INSTALLED_EXT}/INSTALL" ]
+	then
+		cd /
+		"${VCE_INSTALLED_EXT}/INSTALL" post "${EXT}" 0 no /dev/null "$(uname -m)"
+	fi
+}
+
+
+function vce_load_onboot() {
+	link_vce
+
+	while IFS= read -r EXT || [ -n "${EXT}" ]
+	do
+		load_extension "${EXT}" || true
+	done < "${VCE_PATH}/onboot.lst"
+}
+
+
+function vce_load() {
+	local EXT="$1"
+
+	link_vce
+	load_extension "${EXT}"
+}
+
+
+if [ -L "$0" ]
+then
+	cmd="$(basename $0)"
+else
+	cmd="vce-$1"
+	shift
+fi
+
+case "${cmd}" in
+	vce-load|vce-load-onboot)
+		"${cmd//-/_}" "$@"
+		;;
+
+	*)
+		echo "Unknown command: ${cmd#vce-}" >&2
+		exit 1
+		;;
+esac
