@@ -230,6 +230,18 @@ jobs:
             type=raw,value=${{ matrix.arch }}
             type=raw,value=${{ matrix.arch }}-${{ github.sha }}
 
+      - name: Docker metadata for extra
+        id: meta-extra
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302
+        # v6.2.0, verified via git ls-remote
+        with:
+          images: ghcr.io/${{ github.repository }}-extra
+          flavor: |
+            latest=false
+          tags: |
+            type=raw,value=${{ matrix.arch }}
+            type=raw,value=${{ matrix.arch }}-${{ github.sha }}
+
       - name: Login to GHCR
         uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0
         # v4.4.0, verified via git ls-remote
@@ -269,3 +281,22 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha,scope=${{ env.CACHE_KEY }}
           cache-to: type=gha,mode=max,scope=${{ env.CACHE_KEY }}
+
+      - name: Build and push extra initramfs to GHCR
+        uses: >-
+          docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a
+        # v7.3.0, verified via git ls-remote
+        with:
+          context: .
+          file: docker/Dockerfile
+          target: export
+          build-args: |
+            ARCH=${{ matrix.arch }}
+            INSTALL_STAGE=install-packages
+            INSTALL_PACKAGES=xbps-triggers dropbear pam sudo
+            ROOTFS=extrarootfs
+          push: true
+          tags: ${{ steps.meta-extra.outputs.tags }}
+          labels: ${{ steps.meta-extra.outputs.labels }}
+          cache-from: type=gha,scope=${{ env.CACHE_KEY }}
+          cache-to: ""  # don't write to cache for the extra initramfs
