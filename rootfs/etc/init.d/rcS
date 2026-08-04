@@ -16,8 +16,7 @@ echo -e "$PASSWORD\n$PASSWORD" | /usr/sbin/passwd "$USER"
 
 echo "$USER ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/user
 
-# this can be moved to "once"
-for SERVICE in busybox-klogd busybox-syslogd dhcpc busybox-ntpd
+for f in /etc/init.d/rcS.d/*
 do
-	ln -s "/etc/sv/${SERVICE}" /var/service
+	[ -x "$f" ] && $f
 done
