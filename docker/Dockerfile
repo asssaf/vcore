@@ -49,6 +49,7 @@ ARG PKG=busybox-custom
 ARG XBPS_SRC_ARCH
 RUN ./xbps-src $XBPS_SRC_ARCH fetch $PKG
 RUN ./xbps-src $XBPS_SRC_ARCH extract $PKG
+RUN wget -O srcpkgs/busybox/patches/1001-busybox-1.34.1-reboot-param.patch "https://github.com/asssaf/busybox_mirror/compare/1_34_1...asssaf:busybox_mirror:tryboot.patch"
 RUN ./xbps-src $XBPS_SRC_ARCH patch $PKG
 RUN ./xbps-src $XBPS_SRC_ARCH configure $PKG
 RUN ./xbps-src $XBPS_SRC_ARCH build $PKG
