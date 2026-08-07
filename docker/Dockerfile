@@ -103,6 +103,7 @@ FROM install-stage AS cleanup
 
 RUN rm -rf /mnt/var/db/xbps
 RUN rm -rf /mnt/var/cache/xbps
+RUN rm -rf /mnt/boot
 
 
 FROM cleanup AS build-initramfs
