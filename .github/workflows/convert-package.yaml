@@ -1,0 +1,14 @@
+---
+name: Convert Package
+
+on:
+  workflow_dispatch:
+    inputs:
+      pkg_name:
+        description: Package name
+        type: string
+        required: true
+      pkg_source:
+        description: Package source
+        type: string
+        required: true
