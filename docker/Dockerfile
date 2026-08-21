@@ -22,7 +22,7 @@ ARG PACKAGE_SOURCE_STAGE=download-package
 
 FROM ghcr.io/void-linux/void-musl-busybox:20260601r1 AS base
 
-RUN xbps-install -Syu xbps
+RUN xbps-install -Syu xbps squashfs-tools zstd
 
 RUN mkdir -p /mnt/var/db/xbps/keys
 RUN cp /var/db/xbps/keys/* /mnt/var/db/xbps/keys/
@@ -38,7 +38,7 @@ RUN xbps-install -Sy -r "/mnt" -R "$REPO"
 
 FROM install-packages-base AS build-packages-base
 
-RUN XBPS_ARCH="" xbps-install -Sy bash shadow git base-devel coreutils util-linux squashfs-tools zstd
+RUN XBPS_ARCH="" xbps-install -Sy bash shadow git base-devel coreutils util-linux
 
 RUN mkdir /root/void-packages
 WORKDIR /root/void-packages
@@ -109,35 +109,28 @@ FROM scratch AS export-package-list
 COPY --from=create-package-list /pkg.list /
 
 
-FROM build-packages-base AS download-package
+FROM install-packages-base AS download-package
 
 ARG PKG
-ARG PKG_URL
+ARG XBPS_ARCH
+ARG REPO
+ENV XBPS_ARCH=${XBPS_ARCH}
 
-RUN mkdir -p /pkg
-RUN wget -O /pkg/hostpkg.xbps "${PKG_URL}"
-
-
-FROM build-packages-base AS copy-package
-
-ARG PKG
-ARG HOST_PKG
-
-RUN mkdir -p /pkg
-COPY ${HOST_PKG} /pkg/hostpkg.xbps
+RUN xbps-install -y -r "/mnt" -R "$REPO" --download-only $PKG
+RUN mv /mnt/var/cache/xbps/${PKG}*.xbps /
 
 
 FROM ${PACKAGE_SOURCE_STAGE} AS package-source
 
 
-FROM build-packages-base AS convert-package
+FROM install-packages-base AS convert-package
 
 ARG PKG
 ARG VCE_INSTALLED="/usr/local/vce.installed/${PKG}"
 
-COPY --from=package-source /pkg /pkg
+COPY --from=package-source / /pkg
 RUN mkdir -p /mnt/pkg
-RUN zstdcat /pkg/hostpkg.xbps | tar xv -C /mnt/pkg
+RUN zstdcat /pkg/${PKG}*.xbps | tar xv -C /mnt/pkg
 
 RUN mkdir -p "/mnt/pkg/${VCE_INSTALLED}"
 RUN if [ -e "/mnt/pkg/INSTALL" ]; then mv "/mnt/pkg/INSTALL" "/mnt/pkg/${VCE_INSTALLED}/"; fi

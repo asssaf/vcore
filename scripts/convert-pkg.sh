@@ -8,19 +8,14 @@ set -euo pipefail
 : ${OUTPUT_LOCAL:=""}
 : ${HOST_PKG:=""}
 : ${ARCH:=aarch64}
+: ${PACKAGE_SOURCE_STAGE:=""}
 
 EXCLUDE="musl"
 
 
 PKG="$1"
-PKG_URL="$2"
 
 [ "${PKG}" = "${EXCLUDE}" ] && return 0
-
-if [[ ! "${PKG_URL}" = "http"* ]]
-then
-	HOST_PKG="${PKG_URL}"
-fi
 
 docker build -t ${IMAGE} \
 	--target=${TARGET} \
@@ -28,7 +23,6 @@ docker build -t ${IMAGE} \
 	${OUTPUT_LOCAL:+--output "type=local,dest=$OUTPUT_LOCAL"} \
 	--build-arg ARCH="${ARCH}" \
 	--build-arg PKG="${PKG}" \
-	--build-arg PKG_URL="${PKG_URL}" \
-	${HOST_PKG:+--build-arg "HOST_PKG=${HOST_PKG}" --build-arg "PACKAGE_SOURCE_STAGE=copy-package"} \
+	${PACKAGE_SOURCE_STAGE:+--build-arg "PACKAGE_SOURCE_STAGE=${PACKAGE_SOURCE_STAGE}"} \
 	-f docker/Dockerfile \
 	.

@@ -83,7 +83,7 @@ jobs:
           build-args: |
             ARCH=${{ matrix.arch }}
             PKG=${{ inputs.pkg_name }}
-            PKG_URL=${{ inputs.pkg_source }}
+            PACKAGE_SOURCE_STAGE=${{ inputs.pkg_source || 'download-package' }}
           outputs: type=local,dest=dist
           cache-from: type=gha,scope=${{ env.CACHE_KEY }}
           cache-to: type=gha,mode=max,scope=${{ env.CACHE_KEY }}
@@ -109,7 +109,7 @@ jobs:
           build-args: |
             ARCH=${{ matrix.arch }}
             PKG=${{ inputs.pkg_name }}
-            PKG_URL=${{ inputs.pkg_source }}
+            PACKAGE_SOURCE_STAGE=${{ inputs.pkg_source || 'download-package' }}
           push: true
           tags: ${{ steps.meta-busybox.outputs.tags }}
           labels: ${{ steps.meta-busybox.outputs.labels }}
