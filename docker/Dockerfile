@@ -114,6 +114,7 @@ FROM build-packages-base AS download-package
 ARG PKG
 ARG PKG_URL
 
+RUN mkdir -p /pkg
 RUN wget -O /pkg/hostpkg.xbps "${PKG_URL}"
 
 
@@ -121,6 +122,8 @@ FROM build-packages-base AS copy-package
 
 ARG PKG
 ARG HOST_PKG
+
+RUN mkdir -p /pkg
 COPY ${HOST_PKG} /pkg/hostpkg.xbps
 
 
