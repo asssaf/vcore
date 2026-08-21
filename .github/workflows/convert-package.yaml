@@ -89,12 +89,12 @@ jobs:
           cache-to: type=gha,mode=max,scope=${{ env.CACHE_KEY }}
 
       - name: Upload artifact
-        id: upload-initramfs
+        id: upload-package
         uses: >-
           actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         # v7.0.1, verified via git ls-remote
         with:
-          name: initramfs-${{ matrix.arch }}
+          name: ${{ inputs.pkg_name }}-${{ matrix.arch }}
           path: dist/*
 
       - name: Publish
