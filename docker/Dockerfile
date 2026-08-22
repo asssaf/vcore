@@ -127,7 +127,7 @@ FROM ${BUSYBOX_BINPKGS} AS busybox-binpkgs
 
 FROM install-packages AS install-busybox
 
-COPY --from=busybox-binpkgs /binpkgs /binpkgs
+COPY --from=busybox-binpkgs / /binpkgs
 ARG XBPS_ARCH
 ENV XBPS_ARCH=${XBPS_ARCH}
 
