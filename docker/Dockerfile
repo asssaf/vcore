@@ -154,18 +154,6 @@ FROM cleanup AS build-initramfs
 RUN cd /mnt && find . -print0 | cpio --null -ov -H newc | gzip > /initramfs.cpio.gz 
 
 
-FROM cleanup AS build-squashfs
-
-ENV XBPS_ARCH=""
-RUN xbps-install -Sy squashfs-tools
-RUN mksquashfs /mnt /out.squashfs
-
-
-FROM scratch AS export-squashfs
-
-COPY --from=build-squashfs /out.squashfs /
-
-
 FROM scratch AS export
 
 COPY --from=cleanup /mnt /
