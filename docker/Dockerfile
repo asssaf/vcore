@@ -36,42 +36,6 @@ ENV XBPS_ARCH=${XBPS_ARCH}
 RUN xbps-install -Sy -r "/mnt" -R "$REPO"
 
 
-FROM install-packages-base AS build-packages-base
-
-RUN XBPS_ARCH="" xbps-install -Sy bash shadow git base-devel coreutils util-linux
-
-RUN mkdir /root/void-packages
-WORKDIR /root/void-packages
-
-ARG VOID_PACKAGES_URL=https://github.com/asssaf/void-packages/archive/refs/heads/master.tar.gz
-RUN wget -O - "${VOID_PACKAGES_URL}" | tar xvz --strip-components=1
-
-RUN echo -e "XBPS_CHROOT_CMD=ethereal\nXBPS_ALLOW_CHROOT_BREAKOUT=yes" > etc/conf
-RUN ln -s / masterdir
-ARG XBPS_ARCH
-ARG XBPS_SRC_ARCH="-a ${XBPS_ARCH}"
-ARG XBPS_SRC_ARCH="${XBPS_SRC_ARCH/-a x86_64-musl/}"
-RUN ./xbps-src ${XBPS_SRC_ARCH} binary-bootstrap
-
-
-FROM build-packages-base AS build-package
-
-ARG PKG=busybox-custom
-ARG XBPS_SRC_ARCH
-RUN ./xbps-src $XBPS_SRC_ARCH fetch $PKG
-RUN ./xbps-src $XBPS_SRC_ARCH extract $PKG
-RUN ./xbps-src $XBPS_SRC_ARCH patch $PKG
-RUN ./xbps-src $XBPS_SRC_ARCH configure $PKG
-RUN ./xbps-src $XBPS_SRC_ARCH build $PKG
-RUN ./xbps-src $XBPS_SRC_ARCH install $PKG
-RUN ./xbps-src $XBPS_SRC_ARCH pkg $PKG
-
-
-FROM scratch AS export-binpkgs
-
-COPY --from=build-package /root/void-packages/hostdir/binpkgs /binpkgs
-
-
 FROM install-packages-base AS install-packages
 
 RUN mkdir -p /mnt/etc/xbps.d
