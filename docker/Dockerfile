@@ -162,3 +162,22 @@ COPY --from=cleanup /mnt /
 FROM scratch AS export-initramfs
 
 COPY --from=build-initramfs /initramfs.cpio.gz /
+
+
+FROM install-packages-base AS install-extensions
+
+ARG ARCH
+ARG PKG_REPO
+ARG INSTALL_PACKAGES
+
+COPY dl-ext.sh /
+RUN mkdir -p /vce/optional
+RUN for EXT in $INSTALL_PACKAGES; \
+	do \
+		EXT=$EXT OUTPUT=/vce/optional /dl-ext.sh; \
+	done
+
+
+FROM scratch AS export-extensions
+
+COPY --from=install-extensions /vce /vce

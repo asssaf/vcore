@@ -5,6 +5,7 @@ set -euo pipefail
 : ${IMAGE:=asssaf/vcore}
 : ${TARGET:=export-initramfs}
 : ${ARCH:=aarch64}
+: ${PKG_REPO:=""}
 : ${BUSYBOX_BINPKGS:=""}
 : ${INSTALL_PACKAGES:=""}
 : ${INSTALL_STAGE:=""}
@@ -17,6 +18,7 @@ docker build -t ${IMAGE} \
         ${OUTPUT_TAR:+--output "type=tar,dest=$OUTPUT_TAR"} \
         ${OUTPUT_LOCAL:+--output "type=local,dest=$OUTPUT_LOCAL"} \
 	--build-arg "ARCH=${ARCH}" \
+	${PKG_REPO:+--build-arg PKG_REPO="${PKG_REPO}"} \
 	${BUSYBOX_BINPKGS:+--build-arg "BUSYBOX_BINPKGS=${BUSYBOX_BINPKGS}"} \
 	${INSTALL_PACKAGES:+--build-arg "INSTALL_PACKAGES=${INSTALL_PACKAGES}"} \
 	${INSTALL_STAGE:+--build-arg "INSTALL_STAGE=${INSTALL_STAGE}"} \
