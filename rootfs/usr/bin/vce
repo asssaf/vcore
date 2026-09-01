@@ -39,11 +39,13 @@ function link_vce() {
 
 	mkdir -p "$(dirname "${VCE_PATH}")"
 
+	DEV_NAME="$(basename ${DEV})"
+
 	if [ -b "${DEV}" ]
 	then
-		mkdir -p "/mnt/${DEV}"
-		mountpoint -q "/mnt/${DEV}" || mount "/dev/${DEV}" "/mnt/${DEV}"
-		ln -s "/mnt/${DEV}/vce" "${VCE_PATH}"
+		mkdir -p "/mnt/${DEV_NAME}"
+		mountpoint -q "/mnt/${DEV_NAME}" || mount "${DEV}" "/mnt/${DEV_NAME}"
+		ln -s "/mnt/${DEV_NAME}/vce" "${VCE_PATH}"
 	else
 		ln -s "${DEV}" "${VCE_PATH}"
 	fi
