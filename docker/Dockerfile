@@ -4,11 +4,8 @@ ARG XBPS_ARCH=${ARCH}-musl
 ARG REPO="https://repo-default.voidlinux.org/current/${ARCH}"
 ARG REPO="${REPO/x86_64/musl}"
 ARG REPO="${REPO/armv6l/musl}"
+ARG BUSYBOX_BINPKGS=ghcr.io/asssaf/void-packages-busybox-custom:${XBPS_ARCH}-latest
 
-# By default busybox is built from source during the main build
-# To skip building busybox from source, this can be set to a previously built binpgk
-# e.g. BUSYBOX_BINPKGS=ghcr.io/asssaf/vcore-busybox-binpkgs:${ARCH}
-ARG BUSYBOX_BINPKGS=export-binpkgs
 
 # Base stage to use for cleanup and later stages
 # By default the install stage is used which includes some packages, plus the custom built busybox
