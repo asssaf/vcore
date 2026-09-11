@@ -158,7 +158,7 @@ jobs:
           MEM="1G"
           INITRD="initramfs/initramfs.cpio.gz"
           IMAGE="firmware-with-vce-disk/firmware-with-vce-disk.img"
-          CMDLINE="console=ttyAMA0,115200 vce=vda1 services=sshd,busybox-klogd,busybox-syslogd"
+          CMDLINE="console=ttyAMA0,115200 vce=vda1 services=sshd"
           export CPU SMP MEM INITRD CMDLINE IMAGE
           scripts/run.sh |& tee qemu.out &
 
