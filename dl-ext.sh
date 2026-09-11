@@ -14,7 +14,11 @@ function dl_ext() {
 
 	echo "Fetching ${EXT}..."
 	TOKEN="$(wget -O - "https://ghcr.io/token?scope=repository:${PKG_REPO}-${EXT}:pull" | sed 's/{"token":"\(.*\)"}/\1/')"
+	[ -z "$TOKEN" ] && return 1
+
 	DIGEST="$(wget --header "Authorization: Bearer $TOKEN" -O - "https://ghcr.io/v2/${PKG_REPO}-${EXT}/manifests/${ARCH}-musl-latest" | sed -n 's/         "digest": "\(.*\)"/\1/p')"
+	[ -z "$DIGEST" ] && return 2
+
 	wget --header "Authorization: Bearer $TOKEN" -O - "https://ghcr.io/v2/${PKG_REPO}-${EXT}/blobs/$DIGEST" | tar xvz -C "${OUTPUT}" "${EXT}.vcz" "${EXT}.dep" "${EXT}.list" "${EXT}.sha256"
 }
 
