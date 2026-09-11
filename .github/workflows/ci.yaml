@@ -134,7 +134,7 @@ jobs:
         timeout-minutes: 10
         env:
           PACKAGE: "${{matrix.package}}"
-          KERNEL_VERSION: "6.18.28"
+          KERNEL_VERSION: "6.18.39"
           USER: "user"
           PASSWORD: "password"
         run: |
@@ -149,7 +149,7 @@ jobs:
           docker create \
             --name rpi-kernel \
             --platform linux/arm64/v8 \
-            "ghcr.io/asssaf/rpi-kernel:${{ env.KERNEL_VERSION }}-default" \
+            "ghcr.io/asssaf/rpi-kernel:${{ env.KERNEL_VERSION }}-rpi" \
             true
           docker cp rpi-kernel:/Image-${{ env.KERNEL_VERSION }} .
 
