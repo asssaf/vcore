@@ -81,6 +81,7 @@ jobs:
           target: export-firmware-with-vce-disk
           build-args: |
             ARCH=${{ matrix.arch }}
+            PKG_REPO="asssaf/void-packages"
             INSTALL_PACKAGES="pam sudo wpa_supplicant openssh service-getty service-gadget service-dhcpd service-hostapd"
           outputs: type=local,dest=firmware-with-vce-disk
           cache-from: type=gha,scope=${{ env.CACHE_KEY }}
