@@ -3,7 +3,7 @@
 
 set -eu
 
-DEFAULT_SERVICES="busybox-klogd busybox-syslogd dhcpc busybox-ntpd"
+DEFAULT_SERVICES="busybox-klogd busybox-syslogd busybox-ntpd"
 
 function get_services() {
 	echo $DEFAULT_SERVICES
