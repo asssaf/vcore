@@ -183,20 +183,20 @@ COPY --from=install-extensions /vce /vce
 
 FROM install-packages-base AS build-images
 
-ARG PART_SIZE_MB=200
-ARG DISK_SIZE_MB=201
-
 RUN XBPS_ARCH="" xbps-install -y mtools parted 7zip
 
-RUN truncate -s ${PART_SIZE_MB}M firmware-with-vce.img
-RUN mformat -i firmware-with-vce.img ::
-
+ARG SIZE_EXTRA_MB=1
 COPY --from=install-extensions /vce /vce
+RUN PART_SIZE_MB=$(($(du -sm /vce | cut -f 1) + $SIZE_EXTRA_MB)) \
+	&& DISK_SIZE_MB=$(($PART_SIZE_MB + 1)) \
+	&& truncate -s ${PART_SIZE_MB}M firmware-with-vce.img \
+	&& truncate -s ${DISK_SIZE_MB}M firmware-with-vce-disk.img
+
+RUN mformat -i firmware-with-vce.img ::
 RUN mcopy -spQnmvi firmware-with-vce.img vce ::/
 #RUN mcopy -spQnmovi firmware-with-vce.img /config.txt /cmdline.txt ::/ 2>&1
 RUN mlabel -ni firmware-with-vce.img ::RECOVERY
 
-RUN truncate -s ${DISK_SIZE_MB}M firmware-with-vce-disk.img
 RUN parted -s firmware-with-vce-disk.img mklabel msdos mkpart primary fat16 2048s 100%
 RUN dd if="firmware-with-vce.img" of=firmware-with-vce-disk.img bs=512 seek=2048
 
