@@ -1,3 +1,4 @@
 #!/bin/sh
+# shuck:disable-file=X025
 
 exec /usr/bin/logger ${*/daemon/daemon.notice}
